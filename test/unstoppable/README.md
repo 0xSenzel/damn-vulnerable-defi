@@ -1,4 +1,4 @@
-# Stop the pool from offering flash loans
+# Challenge #1: Stop the pool from offering flash loans
 
 This challenge contains 2 smart contract:
 - *UnstoppableLender*
