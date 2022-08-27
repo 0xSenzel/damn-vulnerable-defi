@@ -1,1 +1,0 @@
-[{"inputs":[{"internalType":"address","name":"_dvtAddress","type":"address"},{"internalType":"address","name":"_poolAddr","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"drain","outputs":[],"stateMutability":"nonpayable","type":"function"}]
