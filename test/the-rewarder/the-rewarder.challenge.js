@@ -86,7 +86,7 @@ describe('[Challenge] The rewarder', function () {
             console.log(
                 'Attacker reward token balance after attack: ',
                 String(await this.rewardToken.balanceOf(attacker.address))
-            )
+            ) 
     });
 
     after(async function () {

